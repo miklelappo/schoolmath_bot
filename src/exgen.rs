@@ -1,73 +1,102 @@
 use rand::{Rng, SeedableRng, rngs::StdRng};
-use std::collections::HashSet;
+use std::{
+    cmp::{max, min},
+    collections::HashSet,
+    fmt,
+};
+
+#[derive(Hash, Eq, PartialEq, Copy, Clone)]
+pub enum OpSign {
+    Add,
+    Sub,
+    Mul,
+    Div,
+}
 
 #[derive(Hash, Eq, PartialEq)]
-pub struct BinaryOpArgs {
+pub struct BinaryOp {
     a: u16,
     b: u16,
+    sign: OpSign,
+    result: u16,
 }
 
-pub trait AddFormat {
-    fn fmt_add(&self) -> String;
-}
-
-pub trait SubFormat {
-    fn fmt_sub(&self) -> String;
-}
-
-pub trait MulFormat {
-    fn fmt_mul(&self) -> String;
-}
-
-pub trait DivFormat {
-    fn fmt_div(&self) -> String;
-}
-
-impl AddFormat for BinaryOpArgs {
-    fn fmt_add(&self) -> String {
-        format!("{} + {}", self.a, self.b)
-    }
-}
-
-impl SubFormat for BinaryOpArgs {
-    fn fmt_sub(&self) -> String {
-        if self.a > self.b {
-            format!("{} - {}", self.a, self.b)
-        } else {
-            format!("{} - {}", self.b, self.a)
+impl fmt::Display for OpSign {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            OpSign::Add => write!(f, "+"),
+            OpSign::Sub => write!(f, "-"),
+            OpSign::Mul => write!(f, "*"),
+            OpSign::Div => write!(f, ":"),
         }
     }
 }
 
-impl MulFormat for BinaryOpArgs {
-    fn fmt_mul(&self) -> String {
-        format!("{} * {}", self.a, self.b)
+impl fmt::Display for BinaryOp {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{} {} {} =", self.a, self.sign, self.b)
     }
 }
 
-impl DivFormat for BinaryOpArgs {
-    fn fmt_div(&self) -> String {
-        if self.a != self.b {
-            format!(
-                "{} / {}\n{} / {}",
-                self.a * self.b,
-                self.a,
-                self.a * self.b,
-                self.b
-            )
-        } else {
-            format!("{} / {}", self.a * self.b, self.a)
-        }
-    }
-}
-
-pub fn generate_excercises(arg_limit: u16, excercise_number: usize) -> HashSet<BinaryOpArgs> {
+pub fn generate_excercises(
+    sign: OpSign,
+    arg_limit: u16,
+    excercise_number: usize,
+) -> HashSet<BinaryOp> {
     let mut rng = StdRng::from_os_rng();
     let mut result = HashSet::new();
     while result.len() < excercise_number {
         let a = rng.random_range(1..=arg_limit);
         let b = rng.random_range(1..=arg_limit);
-        result.insert(BinaryOpArgs { a, b });
+        match sign {
+            OpSign::Add => {
+                result.insert(BinaryOp {
+                    a,
+                    b,
+                    sign,
+                    result: a + b,
+                });
+            }
+            OpSign::Sub => {
+                result.insert(BinaryOp {
+                    a: max(a, b),
+                    b: min(a, b),
+                    sign,
+                    result: (a as i16 - b as i16).unsigned_abs(),
+                });
+            }
+            OpSign::Mul => {
+                result.insert(BinaryOp {
+                    a,
+                    b,
+                    sign,
+                    result: a * b,
+                });
+            }
+            OpSign::Div => {
+                if a == b {
+                    result.insert(BinaryOp {
+                        a: a * b,
+                        b,
+                        sign,
+                        result: a,
+                    });
+                } else {
+                    result.insert(BinaryOp {
+                        a: a * b,
+                        b,
+                        sign,
+                        result: a,
+                    });
+                    result.insert(BinaryOp {
+                        a: a * b,
+                        b: a,
+                        sign,
+                        result: b,
+                    });
+                }
+            }
+        }
     }
     result
 }
