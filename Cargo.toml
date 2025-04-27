@@ -10,3 +10,16 @@ teloxide = { version = "0.13.0", features = ["macros"] }
 tokio = { version = "1.44.1", features = ["full"] }
 rand = { version = "0.9.0", features = ["std_rng"] }
 lazy_static = "1.5.0"
+typst-pdf = "0.13.1"
+anyhow = "1.0.98"
+tempfile = "3.19.1"
+typst = "0.13.1"
+time = "0.3.41"
+typst-kit = "0.13.1"
+zune-inflate = { version = "0.2", default-features = false, features = [
+  "gzip",
+  "std",
+] }
+tar = "0.4"
+ureq = "2.9"
+itertools = "0.14.0"

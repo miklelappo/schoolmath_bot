@@ -1,10 +1,13 @@
 use crate::exgen::{OpSign, generate_excercises};
+use anyhow::Result;
 use lazy_static::lazy_static;
 use log::info;
 use std::collections::HashMap;
-use teloxide::{prelude::*, utils::command::BotCommands};
+use teloxide::{prelude::*, types::InputFile, utils::command::BotCommands};
+use tempfile::Builder;
 
 mod exgen;
+mod pdf;
 
 #[derive(BotCommands, Clone, Hash, Eq, PartialEq)]
 #[command(rename_rule = "lowercase", description = "Available commands:")]
@@ -21,6 +24,8 @@ enum Command {
     Multiplication,
     #[command(description = "Get 10 division excercises")]
     Division,
+    #[command(description = "Get daily PDF for 2nd class")]
+    Daily,
 }
 
 lazy_static! {
@@ -47,7 +52,7 @@ fn response(cmd: Command) -> String {
 }
 
 #[tokio::main]
-async fn main() {
+async fn main() -> Result<()> {
     pretty_env_logger::init();
     info!("Starting Telegram bot...");
 
@@ -66,9 +71,20 @@ async fn main() {
                 )
                 .await?
             }
+            Command::Daily => {
+                let mut temp_pdf = Builder::new()
+                    .prefix("daily_pdf")
+                    .suffix(".pdf")
+                    .tempfile()?;
+                let path = temp_pdf.path().to_path_buf();
+                pdf::pdf(&mut temp_pdf);
+                bot.send_document(msg.chat.id, InputFile::file(path))
+                    .await?
+            }
             cmd => bot.send_message(msg.chat.id, response(cmd)).await?,
         };
         Ok(())
     })
     .await;
+    Ok(())
 }

@@ -26,7 +26,7 @@ impl fmt::Display for OpSign {
         match self {
             OpSign::Add => write!(f, "+"),
             OpSign::Sub => write!(f, "-"),
-            OpSign::Mul => write!(f, "*"),
+            OpSign::Mul => write!(f, "x"),
             OpSign::Div => write!(f, ":"),
         }
     }
