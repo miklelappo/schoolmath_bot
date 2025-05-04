@@ -239,8 +239,8 @@ fn into_typst(excercises: HashSet<BinaryOp>, columns: usize) -> String {
         .into_iter()
         .map(|chunk| {
             let line_content = chunk
-                .map(|n| format!("[#text(size: 15pt)[{n}]]")) // or use n.display() if needed
-                .join(","); // em-spaces or regular spaces between entries
+                .map(|n| format!("[#text(size: 15pt)[{n}] #box(line(length: 1.5cm))]"))
+                .join(",");
             format!("{line_content},")
         })
         .join("\n")
