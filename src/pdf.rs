@@ -235,15 +235,17 @@ fn http_successful(status: u16) -> bool {
 fn into_typst(excercises: HashSet<BinaryOp>, columns: usize) -> String {
     excercises
         .into_iter()
+        .enumerate() // Add exercise numbers
         .chunks(columns)
         .into_iter()
         .map(|chunk| {
             let line_content = chunk
-                .map(|n| format!("[#text(size: 15pt)[{n}] #box(line(length: 1.5cm))]"))
+                .map(|(i, n)| format!("[#text(size: 15pt)[{}. {}]]", i + 1, n))
                 .join(",");
             format!("{line_content},")
         })
         .join("\n")
+        .replace("?", r"#box(line(length: 1.5cm))")
 }
 
 pub fn pdf(file: &mut NamedTempFile) {
@@ -266,16 +268,16 @@ pub fn pdf(file: &mut NamedTempFile) {
   columns: (1fr, 1fr),
   stroke: none,
   gutter: 3pt,
-[#text(size: 22pt)[Addition]],[],
+[#text(size: 16pt)[Addition]],[],
 {add_tasks}
 [],[],
-[#text(size: 22pt)[Subtraction]],[],
+[#text(size: 16pt)[Subtraction]],[],
 {sub_tasks}
 [],[],
-[#text(size: 22pt)[Multiplikation]],[],
+[#text(size: 16pt)[Multiplikation]],[],
 {mul_tasks}
 [],[],
-[#text(size: 22pt)[Division]],[],
+[#text(size: 16pt)[Division]],[],
 {div_tasks}
 )
 "#

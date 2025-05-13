@@ -13,12 +13,20 @@ pub enum OpSign {
     Div,
 }
 
+#[derive(Hash, Eq, PartialEq, Copy, Clone)]
+enum DisplayMode {
+    Exercise,     // a <op> b =
+    MissingLeft,  // ? <op> b = result
+    MissingRight, // a <op> ? = result
+}
+
 #[derive(Hash, Eq, PartialEq)]
 pub struct BinaryOp {
     a: u16,
     b: u16,
     sign: OpSign,
     result: u16,
+    mode: DisplayMode,
 }
 
 impl fmt::Display for OpSign {
@@ -34,7 +42,11 @@ impl fmt::Display for OpSign {
 
 impl fmt::Display for BinaryOp {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{} {} {} =", self.a, self.sign, self.b)
+        match self.mode {
+            DisplayMode::Exercise => write!(f, "{} {} {} = ?", self.a, self.sign, self.b),
+            DisplayMode::MissingLeft => write!(f, "? {} {} = {}", self.sign, self.b, self.result),
+            DisplayMode::MissingRight => write!(f, "{} {} ? = {}", self.a, self.sign, self.result),
+        }
     }
 }
 
@@ -55,6 +67,7 @@ pub fn generate_excercises(
                     b,
                     sign,
                     result: a + b,
+                    mode: DisplayMode::Exercise,
                 });
             }
             OpSign::Sub => {
@@ -63,6 +76,7 @@ pub fn generate_excercises(
                     b: min(a, b),
                     sign,
                     result: (a as i16 - b as i16).unsigned_abs(),
+                    mode: DisplayMode::Exercise,
                 });
             }
             OpSign::Mul => {
@@ -71,6 +85,7 @@ pub fn generate_excercises(
                     b,
                     sign,
                     result: a * b,
+                    mode: DisplayMode::Exercise,
                 });
             }
             OpSign::Div => {
@@ -80,6 +95,7 @@ pub fn generate_excercises(
                         b,
                         sign,
                         result: a,
+                        mode: DisplayMode::Exercise,
                     });
                 } else {
                     result.insert(BinaryOp {
@@ -87,12 +103,14 @@ pub fn generate_excercises(
                         b,
                         sign,
                         result: a,
+                        mode: DisplayMode::Exercise,
                     });
                     result.insert(BinaryOp {
                         a: a * b,
                         b: a,
                         sign,
                         result: b,
+                        mode: DisplayMode::Exercise,
                     });
                 }
             }
