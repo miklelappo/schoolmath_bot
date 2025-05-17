@@ -1,4 +1,4 @@
-use rand::{Rng, SeedableRng, rngs::StdRng};
+use rand::{Rng, SeedableRng, distr::StandardUniform, prelude::Distribution, rngs::StdRng};
 use std::{
     cmp::{max, min},
     collections::HashSet,
@@ -18,6 +18,17 @@ enum DisplayMode {
     Exercise,     // a <op> b =
     MissingLeft,  // ? <op> b = result
     MissingRight, // a <op> ? = result
+}
+
+impl Distribution<DisplayMode> for StandardUniform {
+    fn sample<R: Rng + ?Sized>(&self, rng: &mut R) -> DisplayMode {
+        match rng.random_range(0..=2) {
+            // rand 0.8
+            0 => DisplayMode::Exercise,
+            1 => DisplayMode::MissingLeft,
+            _ => DisplayMode::MissingRight,
+        }
+    }
 }
 
 #[derive(Hash, Eq, PartialEq)]
@@ -67,7 +78,7 @@ pub fn generate_excercises(
                     b,
                     sign,
                     result: a + b,
-                    mode: DisplayMode::Exercise,
+                    mode: rand::random(),
                 });
             }
             OpSign::Sub => {
@@ -76,7 +87,7 @@ pub fn generate_excercises(
                     b: min(a, b),
                     sign,
                     result: (a as i16 - b as i16).unsigned_abs(),
-                    mode: DisplayMode::Exercise,
+                    mode: rand::random(),
                 });
             }
             OpSign::Mul => {

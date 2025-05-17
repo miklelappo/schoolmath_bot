@@ -240,7 +240,7 @@ fn into_typst(excercises: HashSet<BinaryOp>, columns: usize) -> String {
         .into_iter()
         .map(|chunk| {
             let line_content = chunk
-                .map(|(i, n)| format!("[#text(size: 15pt)[{}. {}]]", i + 1, n))
+                .map(|(i, n)| format!("[#text(size: 12pt)[{}. {}]]", i + 1, n))
                 .join(",");
             format!("{line_content},")
         })
@@ -249,9 +249,9 @@ fn into_typst(excercises: HashSet<BinaryOp>, columns: usize) -> String {
 }
 
 pub fn pdf(file: &mut NamedTempFile) {
-    let add_tasks = into_typst(generate_excercises(OpSign::Add, 1000, 10), 2);
-    let sub_tasks = into_typst(generate_excercises(OpSign::Sub, 1000, 10), 2);
-    let mul_tasks = into_typst(generate_excercises(OpSign::Mul, 10, 10), 2);
+    let add_tasks = into_typst(generate_excercises(OpSign::Add, 1000, 6), 2);
+    let sub_tasks = into_typst(generate_excercises(OpSign::Sub, 1000, 6), 2);
+    let mul_tasks = into_typst(generate_excercises(OpSign::Mul, 20, 10), 2);
     let div_tasks = into_typst(generate_excercises(OpSign::Div, 10, 10), 2);
 
     let content = format!(
