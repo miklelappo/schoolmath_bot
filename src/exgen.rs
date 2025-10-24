@@ -3,6 +3,7 @@ use std::{
     cmp::{max, min},
     collections::HashSet,
     fmt,
+    ops::RangeInclusive,
 };
 
 #[derive(Hash, Eq, PartialEq, Copy, Clone)]
@@ -63,14 +64,14 @@ impl fmt::Display for BinaryOp {
 
 pub fn generate_excercises(
     sign: OpSign,
-    arg_limit: u16,
+    arg_limit: RangeInclusive<u16>,
     excercise_number: usize,
 ) -> HashSet<BinaryOp> {
     let mut rng = StdRng::from_os_rng();
     let mut result = HashSet::new();
     while result.len() < excercise_number {
-        let a = rng.random_range(1..=arg_limit);
-        let b = rng.random_range(1..=arg_limit);
+        let a = rng.random_range(arg_limit.clone());
+        let b = rng.random_range(arg_limit.clone());
         match sign {
             OpSign::Add => {
                 result.insert(BinaryOp {

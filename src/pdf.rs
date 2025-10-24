@@ -249,10 +249,10 @@ fn into_typst(excercises: HashSet<BinaryOp>, columns: usize) -> String {
 }
 
 pub fn pdf(file: &mut NamedTempFile) {
-    let add_tasks = into_typst(generate_excercises(OpSign::Add, 1000, 6), 2);
-    let sub_tasks = into_typst(generate_excercises(OpSign::Sub, 1000, 6), 2);
-    let mul_tasks = into_typst(generate_excercises(OpSign::Mul, 20, 10), 2);
-    let div_tasks = into_typst(generate_excercises(OpSign::Div, 10, 10), 2);
+    let add_tasks = into_typst(generate_excercises(OpSign::Add, 100..=1000, 6), 2);
+    let sub_tasks = into_typst(generate_excercises(OpSign::Sub, 100..=1000, 6), 2);
+    let mul_tasks = into_typst(generate_excercises(OpSign::Mul, 2..=20, 10), 2);
+    let div_tasks = into_typst(generate_excercises(OpSign::Div, 2..=20, 10), 2);
 
     let content = format!(
         r#"

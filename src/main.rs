@@ -41,7 +41,7 @@ lazy_static! {
 
 fn response(cmd: Command) -> String {
     if let Some((sign, max_value, count)) = ExerciseParams.get(&cmd) {
-        generate_excercises(*sign, *max_value, *count)
+        generate_excercises(*sign, 1..=*max_value, *count)
             .into_iter()
             .fold(String::new(), |acc, n| {
                 acc.to_owned() + &format!("{n}") + "\n"
