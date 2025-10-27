@@ -117,13 +117,6 @@ pub fn generate_excercises(
                         result: a,
                         mode: DisplayMode::Exercise,
                     });
-                    result.insert(BinaryOp {
-                        a: a * b,
-                        b: a,
-                        sign,
-                        result: b,
-                        mode: DisplayMode::Exercise,
-                    });
                 }
             }
         }
