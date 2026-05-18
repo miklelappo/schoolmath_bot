@@ -62,6 +62,12 @@ impl fmt::Display for BinaryOp {
     }
 }
 
+impl BinaryOp {
+    pub fn a(&self) -> u16 { self.a }
+    pub fn b(&self) -> u16 { self.b }
+    pub fn sign(&self) -> OpSign { self.sign }
+}
+
 pub fn generate_excercises(
     sign: OpSign,
     arg_limit: RangeInclusive<u16>,

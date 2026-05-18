@@ -26,6 +26,8 @@ enum Command {
     Division,
     #[command(description = "Get daily PDF for 2nd class")]
     Daily,
+    #[command(description = "Get written addition/subtraction PDF")]
+    WrittenDaily,
 }
 
 lazy_static! {
@@ -78,6 +80,16 @@ async fn main() -> Result<()> {
                     .tempfile()?;
                 let path = temp_pdf.path().to_path_buf();
                 pdf::pdf(&mut temp_pdf);
+                bot.send_document(msg.chat.id, InputFile::file(path))
+                    .await?
+            }
+            Command::WrittenDaily => {
+                let mut temp_pdf = Builder::new()
+                    .prefix("written_pdf")
+                    .suffix(".pdf")
+                    .tempfile()?;
+                let path = temp_pdf.path().to_path_buf();
+                pdf::pdf_written(&mut temp_pdf);
                 bot.send_document(msg.chat.id, InputFile::file(path))
                     .await?
             }

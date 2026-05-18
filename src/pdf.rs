@@ -248,6 +248,103 @@ fn into_typst(excercises: HashSet<BinaryOp>, columns: usize) -> String {
         .replace("?", r"#box(line(length: 1.5cm))")
 }
 
+fn digits_padded(n: u16, width: usize) -> Vec<Option<u8>> {
+    let s = n.to_string();
+    let d: Vec<u8> = s.bytes().map(|b| b - b'0').collect();
+    let mut padded = vec![None; width.saturating_sub(d.len())];
+    padded.extend(d.into_iter().map(Some));
+    padded
+}
+
+fn digit_cell(d: Option<u8>) -> String {
+    match d {
+        None => "[]".to_string(),
+        Some(n) => format!("[{}]", n),
+    }
+}
+
+fn render_written_op(op: &BinaryOp) -> String {
+    let a_digs = digits_padded(op.a(), 4);
+    let b_digs = digits_padded(op.b(), 4);
+    let sign = match op.sign() {
+        OpSign::Add => "+",
+        OpSign::Sub => "-",
+        _ => unreachable!(),
+    };
+    let a_cells: String = a_digs.iter().map(|&d| digit_cell(d)).join(", ");
+    let b_cells: String = b_digs.iter().map(|&d| digit_cell(d)).join(", ");
+    let ans_cells = (0..4)
+        .map(|_| "[#box(line(length: 0.55cm))]".to_string())
+        .join(", ");
+    format!(
+        r#"#table(
+  columns: (0.6cm, 0.6cm, 0.6cm, 0.6cm, 0.6cm),
+  align: center,
+  stroke: none,
+  inset: (x: 1pt, y: 5pt),
+  [], {a_cells},
+  [{sign}], {b_cells},
+  table.hline(start: 1, stroke: 0.5pt),
+  [], {ans_cells},
+)"#
+    )
+}
+
+fn into_typst_written(exercises: HashSet<BinaryOp>, columns: usize) -> String {
+    exercises
+        .into_iter()
+        .enumerate()
+        .chunks(columns)
+        .into_iter()
+        .map(|chunk| {
+            let cells: String = chunk
+                .map(|(i, op)| {
+                    format!(
+                        "[#text(size: 10pt)[{}.]#linebreak(){}]",
+                        i + 1,
+                        render_written_op(&op)
+                    )
+                })
+                .join(", ");
+            format!("{cells},")
+        })
+        .join("\n")
+}
+
+pub fn pdf_written(file: &mut NamedTempFile) {
+    let add_tasks = into_typst_written(generate_excercises(OpSign::Add, 100..=999, 8), 3);
+    let sub_tasks = into_typst_written(generate_excercises(OpSign::Sub, 100..=999, 8), 3);
+
+    let content = format!(
+        r#"
+#set page(
+  paper: "a4",
+  margin: (x: 1.8cm, y: 1.5cm),
+)
+#set text(
+  font: "New Computer Modern",
+  size: 12pt,
+)
+#table(
+  columns: (1fr, 1fr, 1fr),
+  stroke: none,
+  gutter: 10pt,
+[#text(size: 16pt)[Written Addition]], [], [],
+{add_tasks}
+[], [], [],
+[#text(size: 16pt)[Written Subtraction]], [], [],
+{sub_tasks}
+)
+"#
+    );
+    let world = TypstWrapperWorld::new("/tmp".to_string(), content);
+    let document = typst::compile(&world)
+        .output
+        .expect("Error compiling typst");
+    let pdf = typst_pdf::pdf(&document, &PdfOptions::default()).expect("Error exporting PDF");
+    let _ = file.write_all(&pdf);
+}
+
 pub fn pdf(file: &mut NamedTempFile) {
     let add_tasks = into_typst(generate_excercises(OpSign::Add, 100..=1000, 6), 2);
     let sub_tasks = into_typst(generate_excercises(OpSign::Sub, 100..=1000, 6), 2);
