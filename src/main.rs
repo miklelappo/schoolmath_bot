@@ -3,6 +3,8 @@ use anyhow::Result;
 use lazy_static::lazy_static;
 use log::info;
 use std::collections::HashMap;
+use std::fs::File;
+use std::io::Write;
 use teloxide::{prelude::*, types::InputFile, utils::command::BotCommands};
 use tempfile::Builder;
 
@@ -53,8 +55,29 @@ fn response(cmd: Command) -> String {
     }
 }
 
+fn render_to_file(style: &str, path: &str) -> Result<()> {
+    let mut file = tempfile::Builder::new().suffix(".pdf").tempfile()?;
+    match style {
+        "daily" => pdf::pdf(&mut file),
+        "written" => pdf::pdf_written(&mut file),
+        other => anyhow::bail!("unknown style {other:?}: use 'daily' or 'written'"),
+    }
+    let bytes = std::fs::read(file.path())?;
+    File::create(path)?.write_all(&bytes)?;
+    println!("wrote {path}");
+    Ok(())
+}
+
 #[tokio::main]
 async fn main() -> Result<()> {
+    let args: Vec<String> = std::env::args().collect();
+    if args.len() >= 2 && args[1] == "render" {
+        let style = args.get(2).map(String::as_str).unwrap_or("daily");
+        let default_path = format!("{style}.pdf");
+        let path = args.get(3).map(String::as_str).unwrap_or(&default_path);
+        return render_to_file(style, path);
+    }
+
     pretty_env_logger::init();
     info!("Starting Telegram bot...");
 
