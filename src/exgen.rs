@@ -34,10 +34,10 @@ impl Distribution<DisplayMode> for StandardUniform {
 
 #[derive(Hash, Eq, PartialEq)]
 pub struct BinaryOp {
-    a: u16,
-    b: u16,
+    a: u32,
+    b: u32,
     sign: OpSign,
-    result: u16,
+    result: u32,
     mode: DisplayMode,
 }
 
@@ -63,14 +63,14 @@ impl fmt::Display for BinaryOp {
 }
 
 impl BinaryOp {
-    pub fn a(&self) -> u16 { self.a }
-    pub fn b(&self) -> u16 { self.b }
+    pub fn a(&self) -> u32 { self.a }
+    pub fn b(&self) -> u32 { self.b }
     pub fn sign(&self) -> OpSign { self.sign }
 }
 
 pub fn generate_excercises(
     sign: OpSign,
-    arg_limit: RangeInclusive<u16>,
+    arg_limit: RangeInclusive<u32>,
     excercise_number: usize,
 ) -> HashSet<BinaryOp> {
     let mut rng = StdRng::from_os_rng();
@@ -93,7 +93,7 @@ pub fn generate_excercises(
                     a: max(a, b),
                     b: min(a, b),
                     sign,
-                    result: (a as i16 - b as i16).unsigned_abs(),
+                    result: a.max(b) - a.min(b),
                     mode: rand::random(),
                 });
             }

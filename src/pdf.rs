@@ -248,7 +248,7 @@ fn into_typst(excercises: HashSet<BinaryOp>, columns: usize) -> String {
         .replace("?", r"#box(line(length: 1.5cm))")
 }
 
-fn digits_padded(n: u16, width: usize) -> Vec<Option<u8>> {
+fn digits_padded(n: u32, width: usize) -> Vec<Option<u8>> {
     let s = n.to_string();
     let d: Vec<u8> = s.bytes().map(|b| b - b'0').collect();
     let mut padded = vec![None; width.saturating_sub(d.len())];
@@ -264,8 +264,19 @@ fn digit_cell(d: Option<u8>) -> String {
 }
 
 fn render_written_op(op: &BinaryOp) -> String {
-    let a_digs = digits_padded(op.a(), 4);
-    let b_digs = digits_padded(op.b(), 4);
+    let (top, bottom) = match op.sign() {
+        // larger number (by digit count, then value) goes on top
+        OpSign::Add => {
+            let a = op.a();
+            let b = op.b();
+            let a_len = a.to_string().len();
+            let b_len = b.to_string().len();
+            if a_len > b_len || (a_len == b_len && a >= b) { (a, b) } else { (b, a) }
+        }
+        _ => (op.a(), op.b()),
+    };
+    let a_digs = digits_padded(top, 6);
+    let b_digs = digits_padded(bottom, 6);
     let sign = match op.sign() {
         OpSign::Add => "+",
         OpSign::Sub => "-",
@@ -273,17 +284,19 @@ fn render_written_op(op: &BinaryOp) -> String {
     };
     let a_cells: String = a_digs.iter().map(|&d| digit_cell(d)).join(", ");
     let b_cells: String = b_digs.iter().map(|&d| digit_cell(d)).join(", ");
-    let ans_cells = (0..4)
-        .map(|_| "[#box(line(length: 0.55cm))]".to_string())
+    let ans_cells = (0..6)
+        .map(|_| "[#pad(top: 0.6cm)[#line(length: 0.5cm)]]".to_string())
         .join(", ");
+    let carry_cells = (0..6).map(|_| "[]".to_string()).join(", ");
     format!(
         r#"#table(
-  columns: (0.6cm, 0.6cm, 0.6cm, 0.6cm, 0.6cm),
+  columns: (0.6cm, 0.6cm, 0.6cm, 0.6cm, 0.6cm, 0.6cm, 0.6cm),
   align: center,
   stroke: none,
-  inset: (x: 1pt, y: 5pt),
+  inset: (x: 1pt, y: 3pt),
   [], {a_cells},
   [{sign}], {b_cells},
+  [#text(size: 7pt)[G]], {carry_cells},
   table.hline(start: 1, stroke: 0.5pt),
   [], {ans_cells},
 )"#
@@ -297,7 +310,7 @@ fn into_typst_written(exercises: HashSet<BinaryOp>, columns: usize) -> String {
         .chunks(columns)
         .into_iter()
         .map(|chunk| {
-            let cells: String = chunk
+            let mut cells: Vec<String> = chunk
                 .map(|(i, op)| {
                     format!(
                         "[#text(size: 10pt)[{}.]#linebreak(){}]",
@@ -305,15 +318,17 @@ fn into_typst_written(exercises: HashSet<BinaryOp>, columns: usize) -> String {
                         render_written_op(&op)
                     )
                 })
-                .join(", ");
-            format!("{cells},")
+                .collect();
+            // Pad incomplete rows so the next section always starts at column 0
+            cells.resize(columns, "[]".to_string());
+            format!("{},", cells.join(", "))
         })
         .join("\n")
 }
 
 pub fn pdf_written(file: &mut NamedTempFile) {
-    let add_tasks = into_typst_written(generate_excercises(OpSign::Add, 100..=999, 8), 3);
-    let sub_tasks = into_typst_written(generate_excercises(OpSign::Sub, 100..=999, 8), 3);
+    let add_tasks = into_typst_written(generate_excercises(OpSign::Add, 100..=99999, 8), 3);
+    let sub_tasks = into_typst_written(generate_excercises(OpSign::Sub, 100..=99999, 8), 3);
 
     let content = format!(
         r#"
@@ -325,14 +340,17 @@ pub fn pdf_written(file: &mut NamedTempFile) {
   font: "New Computer Modern",
   size: 12pt,
 )
-#table(
+#text(size: 16pt)[Written Addition]
+#grid(
   columns: (1fr, 1fr, 1fr),
-  stroke: none,
   gutter: 10pt,
-[#text(size: 16pt)[Written Addition]], [], [],
 {add_tasks}
-[], [], [],
-[#text(size: 16pt)[Written Subtraction]], [], [],
+)
+#v(0.6cm)
+#text(size: 16pt)[Written Subtraction]
+#grid(
+  columns: (1fr, 1fr, 1fr),
+  gutter: 10pt,
 {sub_tasks}
 )
 "#

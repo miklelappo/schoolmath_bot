@@ -33,12 +33,12 @@ enum Command {
 }
 
 lazy_static! {
-    static ref ExerciseParams: HashMap<Command, (OpSign, u16, usize)> = {
+    static ref ExerciseParams: HashMap<Command, (OpSign, u32, usize)> = {
         let mut m = HashMap::new();
-        m.insert(Command::Addition, (OpSign::Add, 1000_u16, 10_usize));
-        m.insert(Command::Subtraction, (OpSign::Sub, 1000_u16, 10_usize));
-        m.insert(Command::Multiplication, (OpSign::Mul, 10_u16, 20_usize));
-        m.insert(Command::Division, (OpSign::Div, 10_u16, 20_usize));
+        m.insert(Command::Addition, (OpSign::Add, 1000_u32, 10_usize));
+        m.insert(Command::Subtraction, (OpSign::Sub, 1000_u32, 10_usize));
+        m.insert(Command::Multiplication, (OpSign::Mul, 10_u32, 20_usize));
+        m.insert(Command::Division, (OpSign::Div, 10_u32, 20_usize));
         m
     };
 }
